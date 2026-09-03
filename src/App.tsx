@@ -90,14 +90,7 @@ function StellaApp() {
   const [error, setError] = useState<string | null>(null);
   const [apiKeyStatus, setApiKeyStatus] = useState<'checking' | 'ok' | 'missing'>('checking');
 
-  useEffect(() => {
-    if (process.env.GEMINI_API_KEY) {
-      setApiKeyStatus('ok');
-    } else {
-      setApiKeyStatus('missing');
-    }
-  }, []);
-
+  
   const handleGenerate = async () => {
     if (!rawText.trim()) return;
     setLoading(true);
