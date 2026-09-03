@@ -52,6 +52,7 @@
           <textarea
             id="rawText"
             oninput="handleInput()"
+            onpaste="setTimeout(handleInput, 10)"
             placeholder="ਕੱਚੀ ਖ਼ਬਰ ਜਾਂ ਟੈਕਸਟ ਇੱਥੇ ਪਾਓ..."
             maxLength="10000"
             class="w-full h-[260px] bg-transparent outline-none resize-none text-lg leading-relaxed placeholder:text-gray-300"
@@ -62,8 +63,7 @@
             <button
               id="generateBtn"
               onclick="handleGenerate()"
-              disabled
-              class="flex items-center gap-2 px-6 py-3 bg-black text-white font-bold text-sm tracking-wider uppercase disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed hover:bg-gray-800 transition-all"
+              class="flex items-center gap-2 px-6 py-3 bg-black text-white font-bold text-sm tracking-wider uppercase hover:bg-gray-800 transition-all cursor-pointer"
             >
               <i data-lucide="send" class="w-4 h-4"></i> Generate
             </button>
@@ -149,7 +149,6 @@
   function handleInput() {
     const text = document.getElementById('rawText').value;
     document.getElementById('charCount').innerText = `${text.length} / 10000`;
-    document.getElementById('generateBtn').disabled = text.trim().length === 0;
   }
 
   function handleClear() {
@@ -165,7 +164,10 @@
   async function handleGenerate() {
     const text = document.getElementById('rawText').value.trim();
     const graphicsCount = document.getElementById('graphicsCount').value;
-    if (!text) return;
+    if (!text) {
+      alert("ਕਿਰਪਾ ਕਰਕੇ ਪਹਿਲਾਂ ਕੁਝ ਟੈਕਸਟ ਦਰਜ ਕਰੋ!");
+      return;
+    }
 
     ['1', '2', '3'].forEach(i => {
       document.getElementById(`loading${i}`).classList.remove('hidden');
