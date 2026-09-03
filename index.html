@@ -199,12 +199,13 @@ Ensure 'graphics' array has exactly ${graphicsCount} items.`;
           "X-Title": "STELLA Newsroom"
         },
         body: JSON.stringify({
-          model: "google/gemini-flash-1.5",
+          model: "deepseek/deepseek-chat",
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: text }
           ],
-          temperature: 0.3
+          temperature: 0.3,
+          response_format: { type: "json_object" }
         })
       });
 
@@ -212,7 +213,6 @@ Ensure 'graphics' array has exactly ${graphicsCount} items.`;
       if (data.error) throw new Error(data.error.message);
 
       let rawContent = data.choices[0].message.content.trim();
-      // Clean markdown code blocks if present
       if (rawContent.startsWith("```")) {
         rawContent = rawContent.replace(/^```json?\s*/, "").replace(/\s*```$/, "");
       }
