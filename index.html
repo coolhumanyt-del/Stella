@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>STELLA - Newsroom Anchor & Graphics Generator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="min-h-screen bg-white text-black font-sans selection:bg-gray-200 selection:text-black">
+
+  <!-- Header -->
+  <header class="sticky top-0 z-50 bg-white border-b border-black px-6 py-4">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="bg-black p-2">
+          <i data-lucide="tv" class="w-6 h-6 text-white"></i>
+        </div>
+        <h1 class="text-2xl font-black tracking-tighter text-black">STELLA</h1>
+      </div>
+      <span class="text-xs font-bold uppercase tracking-widest text-gray-500">Newsroom AI Suite</span>
+    </div>
+  </header>
+
+  <main class="max-w-[1800px] mx-auto p-6 lg:p-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 items-start">
+      
+      <!-- Input Section -->
+      <section class="space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <select 
+              id="graphicsCount"
+              class="bg-white border border-black text-xs font-bold px-3 py-1.5 rounded-none outline-none cursor-pointer"
+            >
+              <option value="1">1 Graphics</option>
+              <option value="2">2 Graphics</option>
+              <option value="3">3 Graphics</option>
+              <option value="4">4 Graphics</option>
+              <option value="5">5 Graphics</option>
+            </select>
+          </div>
+          <button 
+            onclick="handleClear()"
+            class="text-gray-400 hover:text-black transition-colors p-1 flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest"
+          >
+            <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Reset
+          </button>
+        </div>
+
+        <div class="relative bg-white border border-black p-6 space-y-4">
+          <textarea
+            id="rawText"
+            oninput="handleInput()"
+            placeholder="ਕੱਚੀ ਖ਼ਬਰ ਜਾਂ ਟੈਕਸਟ ਇੱਥੇ ਪਾਓ..."
+            maxLength="10000"
+            class="w-full h-[260px] bg-transparent outline-none resize-none text-lg leading-relaxed placeholder:text-gray-300"
+          ></textarea>
+          
+          <div class="flex items-center justify-between pt-2 border-t border-gray-100">
+            <span id="charCount" class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">0 / 10000</span>
+            <button
+              id="generateBtn"
+              onclick="handleGenerate()"
+              disabled
+              class="flex items-center gap-2 px-6 py-3 bg-black text-white font-bold text-sm tracking-wider uppercase disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed hover:bg-gray-800 transition-all"
+            >
+              <i data-lucide="send" class="w-4 h-4"></i> Generate
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Output Section 1: Scripts & Pointers -->
+      <section class="space-y-4">
+        <div class="flex items-center justify-end h-8">
+          <button 
+            onclick="copySection('scriptOutput', this)"
+            class="hidden id-dependent flex items-center gap-1.5 text-xs font-bold text-black hover:bg-gray-100 px-3 py-1.5 border border-black transition-all"
+            id="copyScriptBtn"
+          >
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy
+          </button>
+        </div>
+
+        <div class="min-h-[300px] max-h-[300px] bg-white border border-black overflow-y-auto p-6" id="scriptContainer">
+          <div id="loading1" class="hidden h-full flex items-center justify-center">
+            <i data-lucide="loader-2" class="w-8 h-8 animate-spin text-black"></i>
+          </div>
+          <div id="scriptOutput" class="text-gray-400 italic text-sm">
+            ਆਊਟਪੁੱਟ ਇੱਥੇ ਦਿਖਾਈ ਦੇਵੇਗੀ...
+          </div>
+        </div>
+      </section>
+
+      <!-- Output Section 2: Graphics -->
+      <section class="space-y-4">
+        <div class="flex items-center justify-end h-8">
+          <button 
+            onclick="copySection('graphicsOutput', this)"
+            class="hidden id-dependent flex items-center gap-1.5 text-xs font-bold text-black hover:bg-gray-100 px-3 py-1.5 border border-black transition-all"
+            id="copyGraphicsBtn"
+          >
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy
+          </button>
+        </div>
+
+        <div class="min-h-[300px] max-h-[300px] bg-white border border-black overflow-y-auto p-6" id="graphicsContainer">
+          <div id="loading2" class="hidden h-full flex items-center justify-center">
+            <i data-lucide="loader-2" class="w-8 h-8 animate-spin text-black"></i>
+          </div>
+          <div id="graphicsOutput" class="text-gray-400 italic text-sm">
+            ਗ੍ਰਾਫਿਕਸ ਜਾਣਕਾਰੀ ਇੱਥੇ ਆਵੇਗੀ...
+          </div>
+        </div>
+      </section>
+
+      <!-- Output Section 3: Headlines -->
+      <section class="space-y-4">
+        <div class="flex items-center justify-end h-8">
+          <button 
+            onclick="copySection('headlinesOutput', this)"
+            class="hidden id-dependent flex items-center gap-1.5 text-xs font-bold text-black hover:bg-gray-100 px-3 py-1.5 border border-black transition-all"
+            id="copyHeadlinesBtn"
+          >
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy
+          </button>
+        </div>
+
+        <div class="min-h-[300px] max-h-[300px] bg-white border border-black overflow-y-auto p-6" id="headlinesContainer">
+          <div id="loading3" class="hidden h-full flex items-center justify-center">
+            <i data-lucide="loader-2" class="w-8 h-8 animate-spin text-black"></i>
+          </div>
+          <div id="headlinesOutput" class="text-gray-400 italic text-sm">
+            ਸੁਰਖੀਆਂ (Headlines) ਇੱਥੇ ਆਉਣਗੀਆਂ...
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+<script>
+  const OPENROUTER_KEY = "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";
+  let globalResult = null;
+
+  lucide.createIcons();
+
+  function handleInput() {
+    const text = document.getElementById('rawText').value;
+    document.getElementById('charCount').innerText = `${text.length} / 10000`;
+    document.getElementById('generateBtn').disabled = text.trim().length === 0;
+  }
+
+  function handleClear() {
+    document.getElementById('rawText').value = '';
+    document.getElementById('scriptOutput').innerHTML = '<span class="text-gray-400 italic text-sm">ਆਊਟਪੁੱਟ ਇੱਥੇ ਦਿਖਾਈ ਦੇਵੇਗੀ...</span>';
+    document.getElementById('graphicsOutput').innerHTML = '<span class="text-gray-400 italic text-sm">ਗ੍ਰਾਫਿਕਸ ਜਾਣਕਾਰੀ ਇੱਥੇ ਆਵੇਗੀ...</span>';
+    document.getElementById('headlinesOutput').innerHTML = '<span class="text-gray-400 italic text-sm">ਸੁਰਖੀਆਂ (Headlines) ਇੱਥੇ ਆਉਣਗੀਆਂ...</span>';
+    document.querySelectorAll('.id-dependent').forEach(el => el.classList.add('hidden'));
+    globalResult = null;
+    handleInput();
+  }
+
+  async function handleGenerate() {
+    const text = document.getElementById('rawText').value.trim();
+    const graphicsCount = document.getElementById('graphicsCount').value;
+    if (!text) return;
+
+    // Show loaders
+    ['1', '2', '3'].forEach(i => {
+      document.getElementById(`loading${i}`).classList.remove('hidden');
+    });
+    document.querySelectorAll('.id-dependent').forEach(el => el.classList.add('hidden'));
+
+    const systemPrompt = `You are a veteran television news executive and senior news producer. Analyze the raw news and output a valid JSON object ONLY with no extra text or markdown formatting. 
+Format:
+{
+  "anchorLink": "Crisp anchor link intro script (2-3 sentences).",
+  "pointers": ["Pointer 1", "Pointer 2", "Pointer 3"],
+  "location": "LOCATION SLUG",
+  "bytePerson": "Byte attribution name & title",
+  "breakingLines": ["Breaking line 1", "Breaking line 2"],
+  "graphics": [
+    { "header": "GRAPHIC TITLE", "pointers": ["Bullet 1", "Bullet 2"] }
+  ],
+  "headlines": "Catchy news headlines summary."
+}
+Ensure 'graphics' array has exactly ${graphicsCount} items. Ensure all content matches professional news broadcast standards.`;
+
+    try {
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${OPENROUTER_KEY}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": window.location.href,
+          "X-Title": "STELLA Newsroom"
+        },
+        body: JSON.stringify({
+          model: "deepseek/deepseek-chat",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: text }
+          ],
+          temperature: 0.3,
+          response_format: { type: "json_object" }
+        })
+      });
+
+      const data = await response.json();
+      if (data.error) throw new Error(data.error.message);
+
+      const content = JSON.parse(data.choices[0].message.content);
+      globalResult = content;
+      renderOutputs(content);
+
+    } catch (err) {
+      alert("Error generating news package: " + err.message);
+    } finally {
+      ['1', '2', '3'].forEach(i => {
+        document.getElementById(`loading${i}`).classList.add('hidden');
+      });
+      document.querySelectorAll('.id-dependent').forEach(el => el.classList.remove('hidden'));
+      lucide.createIcons();
+    }
+  }
+
+  function renderOutputs(res) {
+    // Section 1: Script
+    let scriptHTML = `
+      <div class="space-y-4">
+        <p class="text-base font-medium text-black leading-relaxed">${res.anchorLink}</p>
+        <div class="space-y-1 pt-3 border-t border-gray-100">
+          ${res.pointers.map(p => `<p class="text-sm text-gray-700">• ${p}</p>`).join('')}
+        </div>
+        <div class="pt-3 border-t border-gray-100 space-y-1">
+          <p class="text-sm font-bold uppercase text-black">${res.location}</p>
+          <p class="text-sm text-gray-600 italic">${res.bytePerson}</p>
+        </div>
+        <div class="pt-3 border-t border-gray-100 space-y-1">
+          ${res.breakingLines.map(b => `<p class="text-sm font-black text-black">⚡ ${b}</p>`).join('')}
+        </div>
+      </div>
+    `;
+    document.getElementById('scriptOutput').innerHTML = scriptHTML;
+
+    // Section 2: Graphics
+    let graphicsHTML = res.graphics.map((g, idx) => `
+      <div class="${idx > 0 ? 'pt-4 mt-4 border-t border-gray-100' : ''}">
+        <p class="text-sm font-black uppercase tracking-tight text-black mb-2">${g.header}</p>
+        <div class="space-y-1">
+          ${g.pointers.map(gp => `<p class="text-sm text-gray-800">• ${gp}</p>`).join('')}
+        </div>
+      </div>
+    `).join('');
+    document.getElementById('graphicsOutput').innerHTML = graphicsHTML;
+
+    // Section 3: Headlines
+    let headlinesHTML = `<p class="text-base font-black text-black leading-relaxed">${res.headlines}</p>`;
+    document.getElementById('headlinesOutput').innerHTML = headlinesHTML;
+  }
+
+  function copySection(elementId, btn) {
+    const el = document.getElementById(elementId);
+    if (!el || !globalResult) return;
+    
+    let text = "";
+    if (elementId === 'scriptOutput') {
+      text = [
+        globalResult.anchorLink, '',
+        ...globalResult.pointers, '',
+        globalResult.location, '',
+        globalResult.bytePerson, '',
+        ...globalResult.breakingLines
+      ].join('\n');
+    } else if (elementId === 'graphicsOutput') {
+      text = globalResult.graphics.map(g => [g.header, ...g.pointers].join('\n')).join('\n\n');
+    } else if (elementId === 'headlinesOutput') {
+      text = globalResult.headlines;
+    }
+
+    navigator.clipboard.writeText(text);
+    btn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5 text-green-600"></i> Copied!`;
+    lucide.createIcons();
+    setTimeout(() => {
+      btn.innerHTML = `<i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy`;
+      lucide.createIcons();
+    }, 2000);
+  }
+</script>
+</body>
+</html>
