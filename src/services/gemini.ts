@@ -33,7 +33,11 @@ Format:
 }
 Ensure 'graphics' array has exactly ${graphicsCount} items.`;
 
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+  // CORS ਰੁਕਾਵਟ ਨੂੰ ਹਟਾਉਣ ਲਈ ਪ੍ਰੌਕਸੀ ਰਾਹੀਂ ਰਿਕਵੈਸਟ ਭੇਜਣਾ
+  const proxyUrl = "https://corsproxy.io/?";
+  const targetUrl = "https://api.openai.com/v1/chat/completions";
+
+  const response = await fetch(proxyUrl + encodeURIComponent(targetUrl), {
     method: "POST",
     headers: {
       "Authorization": `Bearer ${OPENAI_API_KEY}`,
@@ -55,7 +59,7 @@ Ensure 'graphics' array has exactly ${graphicsCount} items.`;
     throw new Error(data.error.message || "API error occurred");
   }
 
-  let rawContent = data.choices[0]?.message?.content;
+  let rawContent = data.choices?.[0]?.message?.content;
   if (!rawContent) {
     throw new Error("No response received from AI engine.");
   }
