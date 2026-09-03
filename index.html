@@ -173,7 +173,7 @@
     document.querySelectorAll('.id-dependent').forEach(el => el.classList.add('hidden'));
 
     const systemPrompt = `You are a veteran television news executive and senior news producer for a Punjabi news channel. Analyze the raw news text and output a valid JSON object ONLY with no extra text or markdown formatting. 
-CRITICAL RULE: All text content in the JSON fields (anchorLink, pointers, location, bytePerson, breakingLines, graphics headers/pointers, headlines) MUST be written in professional, journalistic, idiomatic Punjabi (Gurmukhi script). Do not output in English.
+CRITICAL RULE: All text content in the JSON fields MUST be written in professional, journalistic, idiomatic Punjabi (Gurmukhi script).
 
 Format:
 {
@@ -187,7 +187,7 @@ Format:
   ],
   "headlines": "ਖ਼ਬਰਾਂ ਦੀਆਂ ਮੁੱਖ ਸੁਰਖੀਆਂ।"
 }
-Ensure 'graphics' array has exactly ${graphicsCount} items. Ensure all content meets high-end news broadcast standards in Punjabi.`;
+Ensure 'graphics' array has exactly ${graphicsCount} items.`;
 
     try {
       const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -199,20 +199,25 @@ Ensure 'graphics' array has exactly ${graphicsCount} items. Ensure all content m
           "X-Title": "STELLA Newsroom"
         },
         body: JSON.stringify({
-          model: "deepseek/deepseek-chat",
+          model: "google/gemini-flash-1.5",
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: text }
           ],
-          temperature: 0.3,
-          response_format: { type: "json_object" }
+          temperature: 0.3
         })
       });
 
       const data = await response.json();
       if (data.error) throw new Error(data.error.message);
 
-      const content = JSON.parse(data.choices[0].message.content);
+      let rawContent = data.choices[0].message.content.trim();
+      // Clean markdown code blocks if present
+      if (rawContent.startsWith("```")) {
+        rawContent = rawContent.replace(/^```json?\s*/, "").replace(/\s*```$/, "");
+      }
+
+      const content = JSON.parse(rawContent);
       globalResult = content;
       renderOutputs(content);
 
