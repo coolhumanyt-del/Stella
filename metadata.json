@@ -1,0 +1,5 @@
+{
+  "name": "STELLA",
+  "description": "A TV News Anchor Link Generator that converts raw text in Punjabi, Hindi, or English into conversational Punjabi anchor scripts with pointers, location, and byte details.",
+  "requestFramePermissions": []
+}
