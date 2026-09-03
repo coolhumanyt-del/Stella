@@ -90,7 +90,10 @@ function StellaApp() {
   const [error, setError] = useState<string | null>(null);
   const [apiKeyStatus, setApiKeyStatus] = useState<'checking' | 'ok' | 'missing'>('checking');
 
-  
+useEffect(() => {
+    setApiKeyStatus('ok');
+  }, []);
+
   const handleGenerate = async () => {
     if (!rawText.trim()) return;
     setLoading(true);
