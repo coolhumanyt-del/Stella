@@ -13,7 +13,7 @@ export interface AnchorLinkResult {
   headlines: string;
 }
 
-const OPENAI_API_KEY = "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";
+const GEMINI_API_KEY = "AQ.Ab8RN6J1wmsVA2VeOb1qW5STFMHLp8nm_1A6nkl5LL2gVDJ1Mw";
 
 export async function generateAnchorLink(rawText: string, graphicsCount: number): Promise<AnchorLinkResult> {
   const systemPrompt = `You are a veteran television news executive and senior news producer for a professional Punjabi news channel. Analyze the raw news text and output a valid JSON object ONLY with no extra text or markdown formatting. 
@@ -33,35 +33,35 @@ Format:
 }
 Ensure 'graphics' array has exactly ${graphicsCount} items.`;
 
-  // CORS ਰੁਕਾਵਟ ਨੂੰ ਹਟਾਉਣ ਲਈ ਪ੍ਰੌਕਸੀ ਰਾਹੀਂ ਰਿਕਵੈਸਟ ਭੇਜਣਾ
-  const proxyUrl = "https://corsproxy.io/?";
-  const targetUrl = "https://api.openai.com/v1/chat/completions";
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
-  const response = await fetch(proxyUrl + encodeURIComponent(targetUrl), {
+  const response = await fetch(url, {
     method: "POST",
     headers: {
-      "Authorization": `Bearer ${OPENAI_API_KEY}`,
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      model: "gpt-4o-mini",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: rawText }
+      contents: [
+        {
+          role: "user",
+          parts: [{ text: `${systemPrompt}\n\nNews Text:\n${rawText}` }]
+        }
       ],
-      temperature: 0.3,
-      response_format: { type: "json_object" }
+      generationConfig: {
+        temperature: 0.3,
+        responseMimeType: "application/json"
+      }
     })
   });
 
   const data = await response.json();
   if (data.error) {
-    throw new Error(data.error.message || "API error occurred");
+    throw new Error(data.error.message || "Gemini API error occurred");
   }
 
-  let rawContent = data.choices?.[0]?.message?.content;
+  let rawContent = data.candidates?.[0]?.content?.parts?.[0]?.text;
   if (!rawContent) {
-    throw new Error("No response received from AI engine.");
+    throw new Error("No response received from Gemini engine.");
   }
 
   if (rawContent.startsWith("```")) {
