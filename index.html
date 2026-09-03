@@ -18,7 +18,7 @@
         </div>
         <h1 class="text-2xl font-black tracking-tighter text-black">STELLA</h1>
       </div>
-      <span class="text-xs font-bold uppercase tracking-widest text-gray-500">Newsroom AI Suite</span>
+      <span class="text-xs font-bold uppercase tracking-widest text-gray-500">Newsroom AI Suite • GPT-4o-mini</span>
     </div>
   </header>
 
@@ -172,7 +172,7 @@
     });
     document.querySelectorAll('.id-dependent').forEach(el => el.classList.add('hidden'));
 
-    const systemPrompt = `You are a veteran television news executive and senior news producer for a Punjabi news channel. Analyze the raw news text and output a valid JSON object ONLY with no extra text or markdown formatting. 
+    const systemPrompt = `You are a veteran television news executive and senior news producer for a professional Punjabi news channel. Analyze the raw news text and output a valid JSON object ONLY with no extra text or markdown formatting. 
 CRITICAL RULE: All text content in the JSON fields MUST be written in professional, journalistic, idiomatic Punjabi (Gurmukhi script).
 
 Format:
@@ -199,7 +199,7 @@ Ensure 'graphics' array has exactly ${graphicsCount} items.`;
           "X-Title": "STELLA Newsroom"
         },
         body: JSON.stringify({
-          model: "deepseek/deepseek-chat",
+          model: "openai/gpt-4o-mini",
           messages: [
             { role: "system", content: systemPrompt },
             { role: "user", content: text }
@@ -214,83 +214,4 @@ Ensure 'graphics' array has exactly ${graphicsCount} items.`;
 
       let rawContent = data.choices[0].message.content.trim();
       if (rawContent.startsWith("```")) {
-        rawContent = rawContent.replace(/^```json?\s*/, "").replace(/\s*```$/, "");
-      }
-
-      const content = JSON.parse(rawContent);
-      globalResult = content;
-      renderOutputs(content);
-
-    } catch (err) {
-      alert("Error generating news package: " + err.message);
-    } finally {
-      ['1', '2', '3'].forEach(i => {
-        document.getElementById(`loading${i}`).classList.add('hidden');
-      });
-      document.querySelectorAll('.id-dependent').forEach(el => el.classList.remove('hidden'));
-      lucide.createIcons();
-    }
-  }
-
-  function renderOutputs(res) {
-    let scriptHTML = `
-      <div class="space-y-4">
-        <p class="text-base font-medium text-black leading-relaxed">${res.anchorLink}</p>
-        <div class="space-y-1 pt-3 border-t border-gray-100">
-          ${res.pointers.map(p => `<p class="text-sm text-gray-700">• ${p}</p>`).join('')}
-        </div>
-        <div class="pt-3 border-t border-gray-100 space-y-1">
-          <p class="text-sm font-bold uppercase text-black">${res.location}</p>
-          <p class="text-sm text-gray-600 italic">${res.bytePerson}</p>
-        </div>
-        <div class="pt-3 border-t border-gray-100 space-y-1">
-          ${res.breakingLines.map(b => `<p class="text-sm font-black text-black">⚡ ${b}</p>`).join('')}
-        </div>
-      </div>
-    `;
-    document.getElementById('scriptOutput').innerHTML = scriptHTML;
-
-    let graphicsHTML = res.graphics.map((g, idx) => `
-      <div class="${idx > 0 ? 'pt-4 mt-4 border-t border-gray-100' : ''}">
-        <p class="text-sm font-black uppercase tracking-tight text-black mb-2">${g.header}</p>
-        <div class="space-y-1">
-          ${g.pointers.map(gp => `<p class="text-sm text-gray-800">• ${gp}</p>`).join('')}
-        </div>
-      </div>
-    `).join('');
-    document.getElementById('graphicsOutput').innerHTML = graphicsHTML;
-
-    let headlinesHTML = `<p class="text-base font-black text-black leading-relaxed">${res.headlines}</p>`;
-    document.getElementById('headlinesOutput').innerHTML = headlinesHTML;
-  }
-
-  function copySection(elementId, btn) {
-    const el = document.getElementById(elementId);
-    if (!el || !globalResult) return;
-    
-    let text = "";
-    if (elementId === 'scriptOutput') {
-      text = [
-        globalResult.anchorLink, '',
-        ...globalResult.pointers, '',
-        globalResult.location, '',
-        globalResult.bytePerson, '',
-        ...globalResult.breakingLines
-      ].join('\n');
-    } else if (elementId === 'graphicsOutput') {
-      text = globalResult.graphics.map(g => [g.header, ...g.pointers].join('\n')).join('\n\n');
-    } else if (elementId === 'headlinesOutput') {
-      text = globalResult.headlines;
-    }
-
-    navigator.clipboard.writeText(text);
-    btn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5 text-green-600"></i> Copied!`;
-    lucide.createIcons();
-    setTimeout(() => {
-      btn.innerHTML = `<i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy`;
-      lucide.createIcons();
-    }, 2000);
-  }
-</script>
-</body>
-</html>
+        rawContent = rawContent.replace(/^
