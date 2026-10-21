@@ -1,76 +1,25 @@
-export interface GraphicsItem {
-  header: string;
-  pointers: string[];
-}
+export const GENERATE_NEWS_PROMPT = `
+ਤੁਸੀਂ ਇੱਕ ਸੀਨੀਅਰ ਟੀਵੀ ਨਿਊਜ਼ ਪ੍ਰੋਡਿਊਸਰ ਅਤੇ ਸਕ੍ਰਿਪਟ ਰਾਈਟਰ ਹੋ। 
+ਹੇਠਾਂ ਦਿੱਤੇ ਰਾਅ ਡੇਟਾ (Raw News Data) ਦੇ ਆਧਾਰ 'ਤੇ ਦੋ ਚੀਜ਼ਾਂ ਤਿਆਰ ਕਰੋ:
 
-export interface AnchorLinkResult {
-  anchorLink: string;
-  pointers: string[];
-  location: string;
-  bytePerson: string;
-  breakingLines: string[];
-  graphics: GraphicsItem[];
-  headlines: string;
-}
+1. ANCHOR SCRIPT (ਐਂਕਰ ਸਕ੍ਰਿਪਟ):
+- ਭਾਸ਼ਾ ਬਹੁਤ ਪ੍ਰਭਾਵਸ਼ਾਲੀ, ਸਪਸ਼ਟ ਅਤੇ ਬ੍ਰੌਡਕਾਸਟ ਸ਼ੈਲੀ ਵਾਲੀ ਹੋਵੇ।
+- ਸਭ ਤੋਂ ਜ਼ਰੂਰੀ ਨਿਯਮ: ਸਕ੍ਰਿਪਟ ਵਿੱਚ ਕਿਤੇ ਵੀ ਫੁੱਲ ਸਟੌਪ (. ਜਾਂ ।) ਦੀ ਵਰਤੋਂ ਨਹੀਂ ਕਰਨੀ। ਹਰ ਵਾਕ, ਵਿਰਾਮ ਜਾਂ ਠਹਿਰਾਓ ਦੀ ਜਗ੍ਹਾ ਠੀਕ ਤਿੰਨ ਡੌਟਸ ( ... ) ਲਗਾਏ ਜਾਣ ਤਾਂ ਜੋ ਐਂਕਰ ਟੈਲੀਪ੍ਰੋਂਪਟਰ 'ਤੇ ਪੜ੍ਹਦੇ ਸਮੇਂ ਸਹੀ ਪੌਜ਼ ਲੈ ਸਕੇ।
 
-const GEMINI_API_KEY = "AQ.Ab8RN6J1wmsVA2VeOb1qW5STFMHLp8nm_1A6nkl5LL2gVDJ1Mw";
+2. TOPBANDS (5 ਸੁਤੰਤਰ ਟੌਪਬੈਂਡ ਲਾਈਨਾਂ):
+- ਠੀਕ 5 ਵੱਖ-ਵੱਖ ਟੌਪਬੈਂਡ ਲਾਈਨਾਂ ਬਣਾਓ।
+- ਹਰੇਕ ਟੌਪਬੈਂਡ ਲਾਈਨ ਵਿੱਚ ਬਿਲਕੁਲ 5 ਤੋਂ 6 ਸ਼ਬਦ ਹੋਣੇ ਚਾਹੀਦੇ ਹਨ।
+- ਹਰ ਲਾਈਨ ਆਪਣੇ ਆਪ ਵਿੱਚ ਸੰਪੂਰਨ ਅਤੇ ਸੁਤੰਤਰ (Standalone) ਹੋਵੇ, ਅਧੂਰਾ ਵਾਕ ਨਾ ਹੋਵੇ।
 
-export async function generateAnchorLink(rawText: string, graphicsCount: number): Promise<AnchorLinkResult> {
-  const systemPrompt = `You are a veteran television news executive and senior news producer for a professional Punjabi news channel. Analyze the raw news text and output a valid JSON object ONLY with no extra text or markdown formatting. 
-CRITICAL RULE: All text content in the JSON fields MUST be written in professional, journalistic, idiomatic Punjabi (Gurmukhi script).
-
-Format:
+ਕਿਰਪਾ ਕਰਕੇ ਜਵਾਬ ਸਿਰਫ਼ JSON ਫਾਰਮੈਟ ਵਿੱਚ ਦਿਓ:
 {
-  "anchorLink": "ਖ਼ਬਰ ਦੀ ਸ਼ੁਰੂਆਤੀ ਐਂਕਰ ਲਿੰਕ ਸਕ੍ਰਿਪਟ (2-3 ਵਾਕ).",
-  "pointers": ["ਪੁਆਇੰਟਰ 1", "ਪੁਆਇੰਟਰ 2", "ਪੁਆਇੰਟਰ 3"],
-  "location": "ਸਥਾਨ (ਜਵੇਂ ਕਿ ਚੰਡੀਗੜ੍ਹ / ਨਵੀਂ ਦਿੱਲੀ)",
-  "bytePerson": "ਬਾਈਟ ਦੇਣ ਵਾਲੇ ਦਾ ਨਾਮ ਅਤੇ ਅਹੁਦਾ",
-  "breakingLines": ["ਬਰੇਕਿੰਗ ਲਾਈਨ 1", "ਬਰੇਕਿੰਗ ਲਾਈਨ 2"],
-  "graphics": [
-    { "header": "ਗ੍ਰਾਫਿਕ ਸਿਰਲੇਖ", "pointers": ["ਬੁੱਲਟ 1", "ਬੁੱਲਟ 2"] }
-  ],
-  "headlines": "ਖ਼ਬਰਾਂ ਦੀਆਂ ਮੁੱਖ ਸੁਰਖੀਆਂ।"
+  "anchor_script": "ਇੱਥੇ ਪੂਰੀ ਸਕ੍ਰਿਪਟ ... ਜਿਸ ਵਿੱਚ ਹਰ ਵਿਰਾਮ 'ਤੇ ਤਿੰਨ ਡੌਟਸ ਹੋਣ ...",
+  "topbands": [
+    "ਪਹਿਲਾ ਸੁਤੰਤਰ ਟੌਪਬੈਂਡ ਪੰਜ ਛੇ ਸ਼ਬਦ",
+    "ਦੂਜਾ ਟੌਪਬੈਂਡ ਪੰਜ ਜਾਂ ਛੇ ਸ਼ਬਦ",
+    "ਤੀਜੀ ਸੁਤੰਤਰ ਖ਼ਬਰ ਲਾਈਨ ਇੱਥੇ",
+    "ਚੌਥਾ ਅਹਿਮ ਪੁਆਇੰਟ ਬ੍ਰੌਡਕਾਸਟ ਟੌਪਬੈਂਡ",
+    "ਪੰਜਵੀਂ ਲਾਈਨ ਪੰਜ ਤੋਂ ਛੇ ਸ਼ਬਦ"
+  ]
 }
-Ensure 'graphics' array has exactly ${graphicsCount} items.`;
-
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      contents: [
-        {
-          role: "user",
-          parts: [{ text: `${systemPrompt}\n\nNews Text:\n${rawText}` }]
-        }
-      ],
-      generationConfig: {
-        temperature: 0.3,
-        responseMimeType: "application/json"
-      }
-    })
-  });
-
-  const data = await response.json();
-  if (data.error) {
-    throw new Error(data.error.message || "Gemini API error occurred");
-  }
-
-  let rawContent = data.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!rawContent) {
-    throw new Error("No response received from Gemini engine.");
-  }
-
-  if (rawContent.startsWith("```")) {
-    rawContent = rawContent.replace(/^```json?\s*/, "").replace(/\s*```$/, "");
-  }
-
-  try {
-    return JSON.parse(rawContent) as AnchorLinkResult;
-  } catch (e) {
-    throw new Error("Failed to parse AI response structure.");
-  }
-}
+`;
