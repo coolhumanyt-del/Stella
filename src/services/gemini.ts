@@ -1,19 +1,59 @@
-export const GENERATE_NEWS_PROMPT = `
-ਤੁਸੀਂ ਇੱਕ ਸੀਨੀਅਰ ਟੀਵੀ ਨਿਊਜ਼ ਪ੍ਰੋਡਿਊਸਰ ਅਤੇ ਸਕ੍ਰਿਪਟ ਰਾਈਟਰ ਹੋ। 
-ਹੇਠਾਂ ਦਿੱਤੇ ਰਾਅ ਡੇਟਾ (Raw News Data) ਦੇ ਆਧਾਰ 'ਤੇ ਦੋ ਚੀਜ਼ਾਂ ਤਿਆਰ ਕਰੋ:
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
+export interface TopbandItem {
+  text: string;
+  wordCount: number;
+}
+
+export interface NewsScriptResponse {
+  anchorScript: string;
+  topbands: string[];
+}
+
+export async function generateBroadcastContent(
+  rawData: string,
+  apiKey: string
+): Promise<NewsScriptResponse> {
+  if (!apiKey || !apiKey.trim()) {
+    throw new Error("API Key ਦਰਜ ਨਹੀਂ ਕੀਤੀ ਗਈ। ਕਿਰਪਾ ਕਰਕੇ ਆਪਣੀ Gemini API Key ਪਾਓ।");
+  }
+
+  if (!rawData || !rawData.trim()) {
+    throw new Error("ਕਿਰਪਾ ਕਰਕੇ ਕੋਈ ਰਾਅ ਡੇਟਾ (Raw News) ਦਰਜ ਕਰੋ।");
+  }
+
+  const genAI = new GoogleGenerativeAI(apiKey.trim());
+  const model = genAI.getGenerativeModel({
+    model: "gemini-1.5-flash",
+    generationConfig: {
+      responseMimeType: "application/json",
+      temperature: 0.3,
+    },
+  });
+
+  const prompt = `
+ਤੁਸੀਂ ਇੱਕ ਸੀਨੀਅਰ ਟੀਵੀ ਨਿਊਜ਼ ਆਊਟਪੁੱਟ ਪ੍ਰੋਡਿਊਸਰ ਅਤੇ ਸਕ੍ਰਿਪਟ ਰਾਈਟਰ ਹੋ। 
+ਹੇਠਾਂ ਦਿੱਤੇ ਰਾਅ ਡੇਟਾ (Raw News Data) ਦੇ ਆਧਾਰ 'ਤੇ ਟੀਵੀ ਬ੍ਰੌਡਕਾਸਟ ਸਮੱਗਰੀ ਤਿਆਰ ਕਰੋ:
+
+ਨਿਯਮ:
 1. ANCHOR SCRIPT (ਐਂਕਰ ਸਕ੍ਰਿਪਟ):
-- ਭਾਸ਼ਾ ਬਹੁਤ ਪ੍ਰਭਾਵਸ਼ਾਲੀ, ਸਪਸ਼ਟ ਅਤੇ ਬ੍ਰੌਡਕਾਸਟ ਸ਼ੈਲੀ ਵਾਲੀ ਹੋਵੇ।
-- ਸਭ ਤੋਂ ਜ਼ਰੂਰੀ ਨਿਯਮ: ਸਕ੍ਰਿਪਟ ਵਿੱਚ ਕਿਤੇ ਵੀ ਫੁੱਲ ਸਟੌਪ (. ਜਾਂ ।) ਦੀ ਵਰਤੋਂ ਨਹੀਂ ਕਰਨੀ। ਹਰ ਵਾਕ, ਵਿਰਾਮ ਜਾਂ ਠਹਿਰਾਓ ਦੀ ਜਗ੍ਹਾ ਠੀਕ ਤਿੰਨ ਡੌਟਸ ( ... ) ਲਗਾਏ ਜਾਣ ਤਾਂ ਜੋ ਐਂਕਰ ਟੈਲੀਪ੍ਰੋਂਪਟਰ 'ਤੇ ਪੜ੍ਹਦੇ ਸਮੇਂ ਸਹੀ ਪੌਜ਼ ਲੈ ਸਕੇ।
+- ਪੱਤਰਕਾਰੀ ਸ਼ੈਲੀ ਵਿੱਚ ਦਮਦਾਰ, ਸਪਸ਼ਟ ਅਤੇ ਟੀਵੀ ਐਂਕਰ ਦੇ ਪੜ੍ਹਨ ਯੋਗ ਸਕ੍ਰਿਪਟ ਲਿਖੋ।
+- ਸਭ ਤੋਂ ਜ਼ਰੂਰੀ: ਸਕ੍ਰਿਪਟ ਵਿੱਚ ਕਿਤੇ ਵੀ ਫੁੱਲ ਸਟੌਪ (ਜਿਵੇਂ . ਜਾਂ ।) ਬਿਲਕੁਲ ਨਹੀਂ ਲਗਾਉਣਾ। 
+- ਹਰ ਵਾਕ ਦੇ ਅੰਤ ਵਿੱਚ ਅਤੇ ਹਰ ਕੁਦਰਤੀ ਵਿਰਾਮ/ਸਾਹ ਲੈਣ ਦੀ ਥਾਂ ਠੀਕ ਤਿੰਨ ਡੌਟਸ ( ... ) ਲਗਾਏ ਜਾਣ।
 
 2. TOPBANDS (5 ਸੁਤੰਤਰ ਟੌਪਬੈਂਡ ਲਾਈਨਾਂ):
-- ਠੀਕ 5 ਵੱਖ-ਵੱਖ ਟੌਪਬੈਂਡ ਲਾਈਨਾਂ ਬਣਾਓ।
-- ਹਰੇਕ ਟੌਪਬੈਂਡ ਲਾਈਨ ਵਿੱਚ ਬਿਲਕੁਲ 5 ਤੋਂ 6 ਸ਼ਬਦ ਹੋਣੇ ਚਾਹੀਦੇ ਹਨ।
-- ਹਰ ਲਾਈਨ ਆਪਣੇ ਆਪ ਵਿੱਚ ਸੰਪੂਰਨ ਅਤੇ ਸੁਤੰਤਰ (Standalone) ਹੋਵੇ, ਅਧੂਰਾ ਵਾਕ ਨਾ ਹੋਵੇ।
+- ਬਿਲਕੁਲ 5 ਟੌਪਬੈਂਡ (Ticker/Topband) ਲਾਈਨਾਂ ਬਣਾਓ।
+- ਹਰੇਕ ਟੌਪਬੈਂਡ ਲਾਈਨ ਵਿੱਚ ਬਿਲਕੁਲ 5 ਤੋਂ 6 ਸ਼ਬਦ ਹੋਣੇ ਚਾਹੀਦੇ ਹਨ (ਨਾ 4 ਨਾ 7, ਠੀਕ 5 ਜਾਂ 6 ਸ਼ਬਦ)।
+- ਹਰ ਲਾਈਨ ਆਪਣੇ ਆਪ ਵਿੱਚ ਸੰਪੂਰਨ, ਸਪਸ਼ਟ ਅਤੇ ਸੁਤੰਤਰ (Standalone) ਹੋਵੇ।
 
-ਕਿਰਪਾ ਕਰਕੇ ਜਵਾਬ ਸਿਰਫ਼ JSON ਫਾਰਮੈਟ ਵਿੱਚ ਦਿਓ:
+ਕੱਚੀ ਖ਼ਬਰ (Raw Data):
+"""
+${rawData}
+"""
+
+ਆਊਟਪੁੱਟ ਸਿਰਫ਼ ਇਸ ਵੈਧ JSON ਸਕੀਮਾ ਵਿੱਚ ਦਿਓ:
 {
-  "anchor_script": "ਇੱਥੇ ਪੂਰੀ ਸਕ੍ਰਿਪਟ ... ਜਿਸ ਵਿੱਚ ਹਰ ਵਿਰਾਮ 'ਤੇ ਤਿੰਨ ਡੌਟਸ ਹੋਣ ...",
+  "anchorScript": "ਸਕ੍ਰਿਪਟ ਇੱਥੇ ... ਹਰ ਪੌਜ਼ 'ਤੇ ਤਿੰਨ ਡੌਟਸ ... ਕੋਈ ਫੁੱਲ ਸਟੌਪ ਨਹੀਂ ...",
   "topbands": [
     "ਪਹਿਲਾ ਸੁਤੰਤਰ ਟੌਪਬੈਂਡ ਪੰਜ ਛੇ ਸ਼ਬਦ",
     "ਦੂਜਾ ਟੌਪਬੈਂਡ ਪੰਜ ਜਾਂ ਛੇ ਸ਼ਬਦ",
@@ -23,3 +63,19 @@ export const GENERATE_NEWS_PROMPT = `
   ]
 }
 `;
+
+  const result = await model.generateContent(prompt);
+  const responseText = result.response.text();
+  const parsedData = JSON.parse(responseText) as NewsScriptResponse;
+
+  // ਕਲਾਇੰਟ-ਸਾਈਡ ਸੁਰੱਖਿਆ: ਜੇਕਰ ਮਾਡਲ ਨੇ ਕਿਤੇ ਭੁੱਲ ਕੇ ਫੁੱਲ-ਸਟਾਪ ਲਗਾ ਵੀ ਦਿੱਤਾ ਹੋਵੇ ਤਾਂ ਉਸਨੂੰ 3 ਡੌਟਸ ਵਿੱਚ ਬਦਲੋ
+  const sanitizedScript = parsedData.anchorScript
+    .replace(/[।.]+/g, " ... ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return {
+    anchorScript: sanitizedScript,
+    topbands: parsedData.topbands || [],
+  };
+}
